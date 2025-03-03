@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Remote Team Tool</title>
+    
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="/css/styles.css">
+
+    <style>
+        /* Full-page background */
+        body {
+            height: 100vh;
+            background: linear-gradient(135deg, #6aa0d8, #6610f2);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-family: 'Arial', sans-serif;
+            color: white;
+        }
+
+        /* Glassmorphism card */
+        .welcome-card {
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 40px;
+            text-align: center;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+            max-width: 500px;
+            width: 90%;
+        }
+
+        h1 {
+            font-size: 26px;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        p {
+            font-size: 18px;
+            margin-bottom: 20px;
+        }
+
+        /* Styled buttons */
+        .btn-custom {
+            width: 150px;
+            padding: 12px;
+            font-size: 16px;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary:hover {
+            background-color: #0056b3;
+        }
+
+        .btn-secondary:hover {
+            background-color: #444;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="welcome-card">
+        <h1>Welcome to Remote Team Collaboration Tool</h1>
+        <p>Manage tasks, meetings, and files efficiently with your remote team!</p>
+
+        <div class="mt-4">
+            <a href="/auth/login" class="btn btn-primary btn-custom">Login</a>
+            <a href="/auth/register" class="btn btn-secondary btn-custom">Register</a>
+        </div>
+    </div>
+
+</body>
+</html>

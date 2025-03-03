@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Calendar</title>
+    <link rel="stylesheet" href="/styles.css"> <!-- External CSS -->
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: linear-gradient(135deg, #6886a6, #6610f2);
+            text-align: center;
+            margin: 0;
+            padding: 0;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 30px auto;
+            background: rgb(246, 243, 243);
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        h1, h3 {
+            color: #007bff;
+        }
+
+        p {
+            font-size: 18px;
+            color: #555;
+        }
+
+        form {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+        }
+
+        input, textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+
+        button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 10px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        button:hover {
+            background: #0056b3;
+        }
+
+        .event-list {
+            list-style: none;
+            padding: 0;
+        }
+
+        .event-list li {
+            background: #ffffff;
+            margin: 10px 0;
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+            text-align: left;
+        }
+
+        .event-title {
+            font-size: 18px;
+            font-weight: bold;
+            color: #007bff;
+        }
+
+        .event-description {
+            font-size: 14px;
+            color: #555;
+        }
+
+        .event-date {
+            font-size: 14px;
+            color: #333;
+            font-weight: bold;
+        }
+
+        .delete-button {
+            background: #dc3545;
+            padding: 5px 10px;
+            font-size: 14px;
+            border-radius: 5px;
+        }
+
+        .delete-button:hover {
+            background: #c82333;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>My Calendar</h1>
+        <p>Welcome, <%= user.username %></p>
+
+        <!-- Form to add an event -->
+        <h3>Add New Event</h3>
+        <form action="/calendar/add" method="POST">
+            <input type="text" name="title" placeholder="Event Title" required>
+            <textarea name="description" placeholder="Event Description"></textarea>
+            <input type="datetime-local" name="date" required>
+            <button type="submit">Add Event</button>
+        </form>
+
+        <hr>
+
+        <!-- Display events -->
+        <h3>Your Events</h3>
+        <% if (events.length === 0) { %>
+            <p>No events found.</p>
+        <% } else { %>
+            <ul class="event-list">
+                <% events.forEach(event => { %>
+                    <li>
+                        <div class="event-title"><%= event.title %></div>
+                        <div class="event-description"><%= event.description %></div>
+                        <div class="event-date"><%= event.date.toLocaleString() %></div>
+                        <form action="/calendar/delete/<%= event._id %>" method="POST">
+                            <button class="delete-button" type="submit">Delete Event</button>
+                        </form>
+                    </li>
+                <% }) %>
+            </ul>
+        <% } %>
+    </div>
+
+</body>
+</html>

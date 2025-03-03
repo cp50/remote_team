@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Chat</title>
+    <style>
+        /* Global Styles */
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: #f4f4f9;
+            text-align: center;
+            padding: 20px;
+        }
+
+        h2 {
+            color: #333;
+            font-size: 24px;
+        }
+
+        /* Chat Container */
+        #chatContainer {
+            width: 50%;
+            max-width: 600px;
+            margin: auto;
+            background: #fff;
+            border-radius: 8px;
+            box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+            padding: 15px;
+        }
+
+        /* Chat Box */
+        #chatBox {
+            border: none;
+            height: 300px;
+            overflow-y: auto;
+            padding: 10px;
+            background: #fafafa;
+            border-radius: 5px;
+            text-align: left;
+        }
+
+        /* Chat Messages */
+        .message {
+            padding: 8px 12px;
+            margin: 5px 0;
+            border-radius: 18px;
+            max-width: 80%;
+            display: inline-block;
+            font-size: 14px;
+        }
+
+        .userMessage {
+            background: #007bff;
+            color: white;
+            align-self: flex-end;
+        }
+
+        .aiMessage {
+            background: #e4e6eb;
+            color: #333;
+        }
+
+        /* Input Section */
+        .inputContainer {
+            display: flex;
+            margin-top: 10px;
+        }
+
+        #userInput {
+            flex: 1;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+
+        #sendBtn {
+            padding: 10px 15px;
+            background: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            margin-left: 10px;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        #sendBtn:hover {
+            background: #0056b3;
+        }
+    </style>
+</head>
+<body>
+
+    <h2>💬 AI Chat Assistant</h2>
+    
+    <div id="chatContainer">
+        <div id="chatBox"></div>
+        
+        <div class="inputContainer">
+            <input type="text" id="userInput" placeholder="Type your message...">
+            <button id="sendBtn">Send</button>
+        </div>
+    </div>
+
+    <script src="/js/aiChat.js"></script>
+
+</body>
+</html>
