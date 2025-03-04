@@ -5,16 +5,34 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>File Management</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <script>
+        function deleteFile(fileId) {
+            if (confirm("Are you sure you want to delete this file?")) {
+                fetch(`/files/delete/${fileId}`, { method: "DELETE" })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        alert("File deleted successfully!");
+                        location.reload(); // Refresh to update the file list
+                    } else {
+                        alert("Error deleting file.");
+                    }
+                })
+                .catch(error => console.error("Error:", error));
+            }
+        }
+    </script>
     <style>
-        body{
+        body {
             background: linear-gradient(135deg, #6886a6, #6610f2);
         }
     </style>
-    
 </head>
 <body>
     <div class="container mt-5">
         <h1 class="text-center">File Management</h1>
+        
+        <!-- Upload Form -->
         <form action="/files/upload" method="POST" enctype="multipart/form-data" class="mt-4">
             <div class="mb-3">
                 <label for="file" class="form-label">Upload File</label>
@@ -23,12 +41,16 @@
             <button type="submit" class="btn btn-primary">Upload</button>
         </form>
 
+        <!-- Uploaded Files List -->
         <h2 class="mt-5">Uploaded Files</h2>
         <ul class="list-group">
             <% files.forEach(file => { %>
-                <li class="list-group-item">
-                    <a href="/<%= file.filePath %>" download><%= file.filename %></a>
-                    <small class="text-muted">Uploaded on: <%= file.uploadedAt.toDateString() %></small>
+                <li class="list-group-item d-flex justify-content-between align-items-center">
+                    <div>
+                        <a href="/<%= file.filePath %>" download><%= file.filename %></a>
+                        <small class="text-muted d-block">Uploaded on: <%= file.uploadedAt.toDateString() %></small>
+                    </div>
+                    <button class="btn btn-danger btn-sm" onclick="deleteFile('<%= file._id %>')">Delete</button>
                 </li>
             <% }) %>
         </ul>

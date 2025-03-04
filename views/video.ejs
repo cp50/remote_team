@@ -74,67 +74,6 @@
             margin: 0 10px;
             cursor: pointer;
         }
-
-        .chat-container {
-            position: fixed;
-            top: 0;
-            right: -300px;
-            width: 300px;
-            height: 100%;
-            background: #2e2e3e;
-            transition: 0.3s;
-            display: flex;
-            flex-direction: column;
-        }
-
-        .chat-header {
-            padding: 10px;
-            background: #007BFF;
-            color: white;
-            text-align: center;
-        }
-
-        .chat-messages {
-            flex: 1;
-            padding: 10px;
-            overflow-y: auto;
-            font-size: 14px;
-        }
-
-        .chat-input {
-            display: flex;
-            padding: 10px;
-            background: #1e1e2f;
-        }
-
-        .chat-input input {
-            flex: 1;
-            padding: 10px;
-            border: none;
-            outline: none;
-            background: #444;
-            color: white;
-        }
-
-        .chat-input button {
-            background: #007BFF;
-            border: none;
-            color: white;
-            padding: 10px;
-            cursor: pointer;
-        }
-
-        .chat-toggle {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            background: #007BFF;
-            color: white;
-            padding: 10px;
-            border-radius: 5px;
-            cursor: pointer;
-            z-index: 1000;
-        }
     </style>
 </head>
 <body>
@@ -153,20 +92,9 @@
     </div>
 
     <div class="controls">
-        <button id="muteAudioBtn"><i class="fas fa-microphone"></i> Mute Audio</button>
-        <button id="muteVideoBtn"><i class="fas fa-video"></i> Turn Off Video</button>
-        <button onclick="startScreenShare()"><i class="fas fa-desktop"></i> Share Screen</button>
-    </div>
-
-    <div class="chat-toggle" onclick="toggleChat()">💬 Chat</div>
-
-    <div class="chat-container" id="chatContainer">
-        <div class="chat-header">Chat</div>
-        <div class="chat-messages" id="chatMessages"></div>
-        <div class="chat-input">
-            <input type="text" id="messageInput" placeholder="Type a message...">
-            <button onclick="sendMessage()">Send</button>
-        </div>
+        <button id="muteAudioBtn" onclick="toggleAudio()"><i class="fas fa-microphone"></i> Mute Audio</button>
+        <button id="muteVideoBtn" onclick="toggleVideo()"><i class="fas fa-video"></i> Turn Off Video</button>
+        <button id="screenShareBtn" onclick="startScreenShare()"><i class="fas fa-desktop"></i> Share Screen</button>
     </div>
 
     <script>
@@ -228,26 +156,33 @@
             });
         }
 
-        function toggleChat() {
-            const chatContainer = document.getElementById('chatContainer');
-            chatContainer.style.right = chatContainer.style.right === '0px' ? '-300px' : '0px';
+        function toggleAudio() {
+            const audioTrack = myStream.getAudioTracks()[0];
+            audioTrack.enabled = !audioTrack.enabled;
+            document.getElementById("muteAudioBtn").innerHTML = audioTrack.enabled ? 
+                '<i class="fas fa-microphone"></i> Mute Audio' : 
+                '<i class="fas fa-microphone-slash"></i> Unmute Audio';
         }
 
-        function sendMessage() {
-            const messageInput = document.getElementById('messageInput');
-            const message = messageInput.value;
-            if (message) {
-                socket.emit("chat message", message);
-                messageInput.value = "";
-            }
+        function toggleVideo() {
+            const videoTrack = myStream.getVideoTracks()[0];
+            videoTrack.enabled = !videoTrack.enabled;
+            document.getElementById("muteVideoBtn").innerHTML = videoTrack.enabled ? 
+                '<i class="fas fa-video"></i> Turn Off Video' : 
+                '<i class="fas fa-video-slash"></i> Turn On Video';
         }
 
-        socket.on("chat message", (message) => {
-            const chatMessages = document.getElementById('chatMessages');
-            const messageElement = document.createElement('div');
-            messageElement.textContent = message;
-            chatMessages.appendChild(messageElement);
-        });
+        function startScreenShare() {
+            navigator.mediaDevices.getDisplayMedia({ video: true }).then(screenStream => {
+                const screenTrack = screenStream.getVideoTracks()[0];
+                const sender = myStream.getVideoTracks()[0];
+                sender.replaceTrack(screenTrack);
+
+                screenTrack.onended = () => {
+                    sender.replaceTrack(myStream.getVideoTracks()[0]);
+                };
+            }).catch(err => console.error("Error sharing screen:", err));
+        }
     </script>
 </body>
 </html>
