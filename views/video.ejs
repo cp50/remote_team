@@ -74,6 +74,25 @@
             margin: 0 10px;
             cursor: pointer;
         }
+
+        #chatMessages {
+            max-height: 200px;
+            overflow-y: auto;
+            text-align: left;
+            padding: 10px;
+            background: #333;
+            border-radius: 5px;
+            width: 60%;
+            margin: auto;
+            margin-top: 20px;
+        }
+
+        .message {
+            padding: 5px;
+            margin: 3px 0;
+            background: #444;
+            border-radius: 3px;
+        }
     </style>
 </head>
 <body>
@@ -95,7 +114,10 @@
         <button id="muteAudioBtn" onclick="toggleAudio()"><i class="fas fa-microphone"></i> Mute Audio</button>
         <button id="muteVideoBtn" onclick="toggleVideo()"><i class="fas fa-video"></i> Turn Off Video</button>
         <button id="screenShareBtn" onclick="startScreenShare()"><i class="fas fa-desktop"></i> Share Screen</button>
+        <button id="transcriptionBtn" onclick="toggleTranscription()"><i class="fas fa-microphone-alt"></i> Start Transcription</button>
     </div>
+
+    <div id="chatMessages"></div>
 
     <script>
         const socket = io('/');
@@ -182,6 +204,41 @@
                     sender.replaceTrack(myStream.getVideoTracks()[0]);
                 };
             }).catch(err => console.error("Error sharing screen:", err));
+        }
+
+        // Speech Recognition Setup
+        let recognition;
+        let isTranscribing = false;
+
+        if ("webkitSpeechRecognition" in window || "SpeechRecognition" in window) {
+            recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
+            recognition.continuous = true;
+            recognition.interimResults = false;
+            recognition.lang = "en-US";
+
+            recognition.onresult = event => {
+                let transcript = event.results[event.results.length - 1][0].transcript.trim();
+                if (transcript !== "") {
+                    socket.emit("chat message", transcript);
+                }
+            };
+
+            function toggleTranscription() {
+                isTranscribing = !isTranscribing;
+                if (isTranscribing) {
+                    recognition.start();
+                    document.getElementById("transcriptionBtn").innerHTML = '<i class="fas fa-stop"></i> Stop Transcription';
+                } else {
+                    recognition.stop();
+                    document.getElementById("transcriptionBtn").innerHTML = '<i class="fas fa-microphone-alt"></i> Start Transcription';
+                }
+            }
+
+            socket.on("chat message", message => appendTranscription(message));
+        }
+
+        function appendTranscription(text) {
+            document.getElementById("chatMessages").innerHTML += `<div class="message">🗣 ${text}</div>`;
         }
     </script>
 </body>
