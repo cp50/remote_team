@@ -93,6 +93,24 @@
             background: #444;
             border-radius: 3px;
         }
+
+        #summary-container {
+            display: none;
+            margin-top: 20px;
+            padding: 10px;
+            border: 1px solid #ccc;
+            background: #f9f9f9;
+            color: black;
+            border-radius: 5px;
+            width: 60%;
+            margin: auto;
+            text-align: left;
+        }
+
+        #summaryResult {
+            font-size: 16px;
+            font-weight: bold;
+        }
     </style>
 </head>
 <body>
@@ -115,9 +133,16 @@
         <button id="muteVideoBtn" onclick="toggleVideo()"><i class="fas fa-video"></i> Turn Off Video</button>
         <button id="screenShareBtn" onclick="startScreenShare()"><i class="fas fa-desktop"></i> Share Screen</button>
         <button id="transcriptionBtn" onclick="toggleTranscription()"><i class="fas fa-microphone-alt"></i> Start Transcription</button>
+        <button id="summarizeBtn" onclick="summarizeMeeting()"><i class="fas fa-file-alt"></i> Summarize</button>
     </div>
 
     <div id="chatMessages"></div>
+
+    <!-- Summary Section -->
+    <div id="summary-container">
+        <h3>📝 AI Meeting Summary</h3>
+        <div id="summaryResult">No summary available.</div>
+    </div>
 
     <script>
         const socket = io('/');
@@ -147,7 +172,6 @@
             });
 
             socket.on('user-connected', userId => {
-                console.log(`User connected: ${userId}`);
                 connectToNewUser(userId, stream);
             });
         });
@@ -168,22 +192,12 @@
             }
         }
 
-        function connectToNewUser(userId, stream) {
-            const call = myPeer.call(userId, stream);
-            const video = document.createElement('video');
-            call.on('stream', userStream => {
-                video.srcObject = userStream;
-                video.play();
-                videoGrid.appendChild(video);
-            });
-        }
-
         function toggleAudio() {
             const audioTrack = myStream.getAudioTracks()[0];
             audioTrack.enabled = !audioTrack.enabled;
             document.getElementById("muteAudioBtn").innerHTML = audioTrack.enabled ? 
                 '<i class="fas fa-microphone"></i> Mute Audio' : 
-                '<i class="fas fa-microphone-slash"></i> Unmute Audio';
+                '<i class="fas fa-microphone-slash"></i> Unmute Audio'
         }
 
         function toggleVideo() {
@@ -192,54 +206,67 @@
             document.getElementById("muteVideoBtn").innerHTML = videoTrack.enabled ? 
                 '<i class="fas fa-video"></i> Turn Off Video' : 
                 '<i class="fas fa-video-slash"></i> Turn On Video';
+
         }
 
         function startScreenShare() {
             navigator.mediaDevices.getDisplayMedia({ video: true }).then(screenStream => {
-                const screenTrack = screenStream.getVideoTracks()[0];
-                const sender = myStream.getVideoTracks()[0];
-                sender.replaceTrack(screenTrack);
-
-                screenTrack.onended = () => {
-                    sender.replaceTrack(myStream.getVideoTracks()[0]);
-                };
-            }).catch(err => console.error("Error sharing screen:", err));
+                myStream.getVideoTracks()[0].stop();
+                myStream = screenStream;
+                myVideo.srcObject = screenStream;
+            });
         }
 
-        // Speech Recognition Setup
-        let recognition;
-        let isTranscribing = false;
+let recognition;
+let isTranscribing = false;
+let fullTranscript = "";  // ✅ Store the full transcript
 
-        if ("webkitSpeechRecognition" in window || "SpeechRecognition" in window) {
-            recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
-            recognition.continuous = true;
-            recognition.interimResults = false;
-            recognition.lang = "en-US";
+if ("webkitSpeechRecognition" in window || "SpeechRecognition" in window) {
+    recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
+    recognition.continuous = true;
+    recognition.lang = "en-US";
 
-            recognition.onresult = event => {
-                let transcript = event.results[event.results.length - 1][0].transcript.trim();
-                if (transcript !== "") {
-                    socket.emit("chat message", transcript);
-                }
-            };
+    recognition.onresult = (event) => {
+        let transcript = event.results[event.results.length - 1][0].transcript.trim();
+        fullTranscript += transcript + " "; // ✅ Append to full transcript
+        console.log("Captured Transcript:", fullTranscript); // ✅ Debugging log
+        document.getElementById("chatMessages").innerHTML += `<div class="message">🗣 ${transcript}</div>`;
+    };
 
-            function toggleTranscription() {
-                isTranscribing = !isTranscribing;
-                if (isTranscribing) {
-                    recognition.start();
-                    document.getElementById("transcriptionBtn").innerHTML = '<i class="fas fa-stop"></i> Stop Transcription';
-                } else {
-                    recognition.stop();
-                    document.getElementById("transcriptionBtn").innerHTML = '<i class="fas fa-microphone-alt"></i> Start Transcription';
-                }
-            }
-
-            socket.on("chat message", message => appendTranscription(message));
+    function toggleTranscription() {
+        isTranscribing = !isTranscribing;
+        if (isTranscribing) {
+            fullTranscript = ""; // ✅ Reset transcript when starting
+            recognition.start();
+            document.getElementById("transcriptionBtn").innerHTML = '<i class="fas fa-stop"></i> Stop Transcription';
+        } else {
+            recognition.stop();
+            document.getElementById("transcriptionBtn").innerHTML = '<i class="fas fa-microphone-alt"></i> Start Transcription';
         }
+    }
+}
 
-        function appendTranscription(text) {
-            document.getElementById("chatMessages").innerHTML += `<div class="message">🗣 ${text}</div>`;
-        }
+// ✅ Send transcript to the server for summarization
+function summarizeMeeting() {
+    if (!fullTranscript.trim()) {
+        alert("No conversation data available for summarization.");
+        return;
+    }
+
+    fetch('/summarize', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ transcript: fullTranscript })  // ✅ Send transcript
+    })
+    .then(response => response.json())
+    .then(data => {
+        document.getElementById("summaryResult").textContent = data.summary || "No summary generated.";
+        document.getElementById("summary-container").style.display = "block";
+    })
+    .catch(error => console.error('Error fetching summary:', error));
+}
+
     </script>
+
 </body>
 </html>

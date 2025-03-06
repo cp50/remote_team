@@ -1,3 +1,4 @@
+require('dotenv').config();
 const express = require('express');
 const mongoose = require('mongoose');
 const session = require('express-session');
@@ -6,10 +7,7 @@ const path = require('path');
 const http = require('http');
 const socketIo = require('socket.io');
 const { ExpressPeerServer } = require('peer');
-
-const dotenv = require('dotenv');
-
-dotenv.config();
+const { GoogleGenerativeAI } = require('@google/generative-ai');
 
 const app = express();
 const server = http.createServer(app);
@@ -18,6 +16,7 @@ const io = socketIo(server);
 // Middleware
 app.use(express.json());
 app.use(bodyParser.urlencoded({ extended: true }));
+app.use(bodyParser.json());
 app.use(
     session({
         secret: 'secretkey',
@@ -36,6 +35,9 @@ mongoose
     })
     .then(() => console.log('✅ Connected to MongoDB'))
     .catch((err) => console.log('❌ Failed to connect to MongoDB:', err));
+
+// Google Generative AI for Summarization
+const genAI = new GoogleGenerativeAI(process.env.GOOGLE_API_KEY);
 
 // Routes
 const authRoutes = require('./routes/auth');
@@ -120,6 +122,42 @@ io.on("connection", (socket) => {
         });
     });
 });
+
+// API Route for Meeting Summarization
+const axios = require("axios");
+
+app.post("/summarize", async (req, res) => {
+    try {
+        const { transcript } = req.body;
+
+        console.log("Received Transcript:", transcript);
+
+        if (!transcript || transcript.trim() === "") {
+            return res.json({ summary: "No conversation data available for summarization." });
+        }
+
+        // ✅ Use direct API URL with Gemini 1.5 Flash
+        const apiUrl = `https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key=${process.env.GOOGLE_API_KEY}`;
+
+        const prompt = `Summarize this conversation in a clear and concise way: ${transcript}`;
+
+        // ✅ Use Axios to make the API request
+        const response = await axios.post(apiUrl, {
+            contents: [{ role: "user", parts: [{ text: prompt }] }]
+        });
+
+        // ✅ Extract the summary correctly
+        const summary = response.data.candidates[0].content.parts[0].text;
+
+        res.json({ summary: summary });
+
+    } catch (error) {
+        console.error("Summarization error:", error);
+        res.json({ summary: "Error generating summary." });
+    }
+});
+
+
 
 const PORT = 3000;
 server.listen(PORT, () => console.log(`🚀 Server started on http://localhost:${PORT}`));
