@@ -15,8 +15,6 @@ Seamless Teamwork | Video Calls | File Sharing | AI-Powered Assistance
 ✅ User-Friendly UI – Simple and intuitive design
 ✅ Secure & Scalable – Built with Node.js, Express, MongoDB
 
-📸 Screenshots
-🚀 Showcase UI/UX with relevant screenshots
 
 🛠 Tech Stack
 Frontend: HTML, CSS, JavaScript, EJS
